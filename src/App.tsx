@@ -1,29 +1,34 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 
+function Sound({ src }: { src: string }) {
+    const formatSrc = (src: string) => {
+        if (src.startsWith("/sounds/")) {
+            src = src.slice(8);
+        }
+
+        src = src.replaceAll(/([a-z])([A-Z])/g, "$1 $2");
+        src = src.toLowerCase();
+        src = src[0].toUpperCase() + src.slice(1);
+
+        return src;
+    };
+
+    return (
+        <div className="flex items-center my-4 ml-8">
+            <audio src={src} controls></audio>
+            <span className="ml-4">{formatSrc(src)}</span>
+        </div>
+    );
+}
+
 function App() {
-    const [count, setCount] = useState(0);
+    const srcs = ["/sounds/clashRoyaleSoundtrack.mp3", "/sounds/goblins.mp3", "/sounds/mortar.mp3"];
 
     return (
         <>
-            <div>
-                <a href="https://vite.dev" target="_blank">
-                    <img src={viteLogo} className="logo" alt="Vite logo" />
-                </a>
-                <a href="https://react.dev" target="_blank">
-                    <img src={reactLogo} className="logo react" alt="React logo" />
-                </a>
-            </div>
-            <h1>Vite + React</h1>
-            <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-                <p>
-                    Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
-            </div>
-            <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
+            {srcs.map((src) => (
+                <Sound {...{ src }} />
+            ))}
         </>
     );
 }
