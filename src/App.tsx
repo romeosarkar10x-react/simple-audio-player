@@ -1,4 +1,5 @@
 import "./App.css";
+import { GLOBALS } from "./globals";
 
 function Sound({ src }: { src: string }) {
     const formatSrc = (src: string) => {
@@ -15,7 +16,7 @@ function Sound({ src }: { src: string }) {
 
     return (
         <div className="flex items-center my-4 ml-8">
-            <audio src={src} controls></audio>
+            <audio src={`${GLOBALS.BASE_URL}${src}`} controls></audio>
             <span className="ml-4">{formatSrc(src)}</span>
         </div>
     );
