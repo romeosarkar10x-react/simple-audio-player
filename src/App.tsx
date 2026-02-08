@@ -6,6 +6,7 @@ import "./App.css";
 import { Download, Pause, Play, Share2 } from "lucide-react";
 import { pcmFloat32ToWAV } from "./lib/utils/audio/pcmFloat32ToWAV";
 import { Button } from "./components/ui/button";
+import { audioContext } from "./lib/utils/audio/context";
 
 type PlayingType =
     | {
@@ -36,8 +37,6 @@ function formatNumber(n: number, fillWidth: number, fill: string = "0") {
     return s;
 }
 
-const audioContext = new AudioContext();
-
 function Sound({
     onPlay,
     onPause,
@@ -52,18 +51,6 @@ function Sound({
     const srcURL = `${GLOBALS.BASE_URL}/sounds/${src}.mp3`;
 
     const [audioData, setAudioData] = useState<AudioBuffer | null>(null);
-    /*
-    const { current: audioContext } = useRef(
-        (function () {
-            const context = new AudioContext();
-            context.addEventListener("statechange", (e) => {
-                console.log("audio context state change", e);
-            });
-            return context;
-        })(),
-    );
-    */
-    // const { current: audioContext } = useRef(new AudioContext);
 
     const [audioPlayer, setAudioPlayer] = useState<WaveSurfer | null>(null);
     const waveSurferContainerElemRef = useRef<HTMLSpanElement | null>(null);
