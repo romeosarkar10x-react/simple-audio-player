@@ -5,6 +5,7 @@ import WaveSurfer from "wavesurfer.js";
 import "./App.css";
 import { Download, Pause, Play, Share2 } from "lucide-react";
 import { pcmFloat32ToWAV } from "./lib/utils/audio/pcmFloat32ToWAV";
+import { Button } from "./components/ui/button";
 
 type PlayingType =
     | {
@@ -208,15 +209,21 @@ function Sound({
 
     return (
         <div className="flex items-center my-4 ml-8">
-            <div className="flex gap-4 items-center w-fit border-2 border-gray-200 rounded-lg px-4 py-1">
-                <button className="p-2" onClick={isPlaying ? handlePause : handlePlay}>
-                    {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-                </button>
+            <div className="flex gap-4 items-center w-fit border border-border rounded-lg px-4 py-1">
+                <Button variant="default" size="icon-sm" onClick={isPlaying ? handlePause : handlePlay}>
+                    {isPlaying ? <Pause /> : <Play />}
+                </Button>
+
+                {/*<button className="p-2" onClick={}>
+                </button> */}
                 <span ref={waveSurferContainerElemRef}></span>
-                <button onClick={handleDownload}>
-                    <Download size={16} />
-                </button>
-                <Share2 size={16} />
+                <Button variant="secondary" size="icon-sm" onClick={handleDownload}>
+                    <Download />
+                </Button>
+                {/*<button ></button> */}
+                <Button variant="secondary" size="icon-sm">
+                    <Share2 />
+                </Button>
             </div>
             <span className="ml-4">$: {formatSrc(src)}</span>
         </div>
