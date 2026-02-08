@@ -133,7 +133,8 @@ function Sound({
                 barRadius: 2,
                 cursorWidth: 0,
                 dragToSeek: true,
-                progressColor: "orange",
+                progressColor: "#10b981",
+                waveColor: "#6b7280",
                 sampleRate: 3000,
             });
 
