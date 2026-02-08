@@ -4,6 +4,7 @@ import WaveSurfer from "wavesurfer.js";
 
 import "./App.css";
 import { Download, Pause, Play, Share2 } from "lucide-react";
+import { pcmFloat32ToWAV } from "./lib/utils/audio/pcmFloat32ToWAV";
 
 type PlayingType =
     | {
@@ -34,6 +35,8 @@ function formatNumber(n: number, fillWidth: number, fill: string = "0") {
     return s;
 }
 
+const audioContext = new AudioContext();
+
 function Sound({
     onPlay,
     onPause,
@@ -47,13 +50,42 @@ function Sound({
 }) {
     const srcURL = `${GLOBALS.BASE_URL}/sounds/${src}.mp3`;
 
+    const [audioData, setAudioData] = useState<AudioBuffer | null>(null);
+    /*
+    const { current: audioContext } = useRef(
+        (function () {
+            const context = new AudioContext();
+            context.addEventListener("statechange", (e) => {
+                console.log("audio context state change", e);
+            });
+            return context;
+        })(),
+    );
+    */
+    // const { current: audioContext } = useRef(new AudioContext);
+
     const [audioPlayer, setAudioPlayer] = useState<WaveSurfer | null>(null);
     const waveSurferContainerElemRef = useRef<HTMLSpanElement | null>(null);
 
+    const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(-1);
     const durationRef = useRef(duration);
 
-    const [currentTime, setCurrentTime] = useState(0);
+    /** Fetch audio data */
+    useEffect(() => {
+        (async function fetchAudioData() {
+            const response = await fetch(srcURL);
+
+            if (!response.ok) {
+                return;
+            }
+
+            const buffer = await response.arrayBuffer();
+            const data = await audioContext.decodeAudioData(buffer);
+
+            setAudioData(data);
+        })();
+    }, [srcURL]);
 
     function formatTime(time: number): string {
         return `${formatNumber(Math.floor(time / 60), 2)}:${formatNumber(Math.floor(time % 60), 2)}:${formatNumber(Math.floor((time * 1000) % 1000), 3)}`;
@@ -74,10 +106,29 @@ function Sound({
         }
     }
 
+    function handleDownload() {
+        if (audioData === null) {
+            return;
+        }
+
+        console.log("Sample rate:", audioData.sampleRate);
+        console.log("Number of channels:", audioData.numberOfChannels);
+
+        const wav = pcmFloat32ToWAV(audioData);
+        const blob = new Blob([wav], { type: "audio/wav" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${src}.wav`;
+        a.click();
+    }
+
     useEffect(() => {
         durationRef.current = duration;
     }, [duration]);
 
+    /** Init 'WaveSurfer' */
     useEffect(() => {
         console.log("waveSurferContainerElemRef:", waveSurferContainerElemRef);
 
@@ -95,6 +146,11 @@ function Sound({
                 cursorWidth: 0,
                 dragToSeek: true,
                 progressColor: "orange",
+                sampleRate: 3000,
+            });
+
+            waveSurfer.on("error", (err) => {
+                console.log("Error:", err);
             });
 
             waveSurfer.on("pause", () => {
@@ -152,12 +208,14 @@ function Sound({
 
     return (
         <div className="flex items-center my-4 ml-8">
-            <div className="flex gap-4 items-center w-fit border-2 border-gray-400 rounded-lg px-4 py-1">
+            <div className="flex gap-4 items-center w-fit border-2 border-gray-200 rounded-lg px-4 py-1">
                 <button className="p-2" onClick={isPlaying ? handlePause : handlePlay}>
                     {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                 </button>
                 <span ref={waveSurferContainerElemRef}></span>
-                <Download size={16} />
+                <button onClick={handleDownload}>
+                    <Download size={16} />
+                </button>
                 <Share2 size={16} />
             </div>
             <span className="ml-4">$: {formatSrc(src)}</span>
