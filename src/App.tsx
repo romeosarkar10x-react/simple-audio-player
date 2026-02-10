@@ -176,7 +176,7 @@ function Sound({
 }
 
 function App() {
-    const srcs = ["clashRoyaleSoundtrack", "heIsAPirate", "mirageTheme", "valhallaTheme", "auroraWinterlands"];
+    const srcs = ["clashRoyale", "heIsAPirate", "mirageTheme", "valhallaTheme", "auroraWinterlands"];
 
     const [playing, setPlaying] = useState<PlayingType>({ status: false });
     // console.log("Playing...", playing);
