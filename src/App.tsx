@@ -176,18 +176,7 @@ function Sound({
 }
 
 function App() {
-    const srcs = [
-        "arrow",
-        "booHooHooHew",
-        "clashRoyaleSoundtrack",
-        "fireSpirits",
-        "goblins",
-        "kingLaugh",
-        "miniPekka",
-        "mortar",
-        "rocket",
-        "spearGoblins",
-    ];
+    const srcs = ["clashRoyaleSoundtrack", "heIsAPirate", "mirageTheme", "valhallaTheme", "auroraWinterlands"];
 
     const [playing, setPlaying] = useState<PlayingType>({ status: false });
     // console.log("Playing...", playing);
