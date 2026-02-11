@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import WaveSurfer from "./components/WaveSurfer";
+import WaveformAudioPlayer from "./components/WaveformAudioPlayer";
 
 import "./App.css";
 import { pcmFloat32ToWAV } from "./lib/utils/audio/pcmFloat32ToWAV";
@@ -41,7 +41,7 @@ function App() {
     return (
         <>
             {srcs.map((src, index) => (
-                <WaveSurfer
+                <WaveformAudioPlayer
                     id={index}
                     onPlay={handlePlay}
                     onPause={handlePause}
