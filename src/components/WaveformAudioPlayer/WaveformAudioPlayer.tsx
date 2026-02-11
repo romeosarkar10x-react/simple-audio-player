@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { Button } from "@/components/ui/button";
 import { Download, Pause, Play, Share2 } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 
 function generateSrcURL(src: string) {
     return `${GLOBALS.BASE_URL}/sounds/${src}.mp3`;
@@ -19,6 +20,7 @@ export default function WaveSurferComponent({
     onDownload,
     isPlaying,
     src,
+    className,
 }: {
     id: number;
     label: string;
@@ -27,6 +29,7 @@ export default function WaveSurferComponent({
     onDownload: (audio: AudioDataType) => void;
     isPlaying: boolean;
     src: string | Blob;
+    className?: string;
 }) {
     const [audio, setAudio] = useState<AudioDataType | null>(null);
 
@@ -94,7 +97,6 @@ export default function WaveSurferComponent({
         const waveSurfer = WaveSurfer.create({
             container: waveSurferContainerElemRef.current,
             height: 40,
-            width: 400,
             barWidth: 2,
             barGap: 1,
             barRadius: 2,
@@ -141,9 +143,9 @@ export default function WaveSurferComponent({
     }, [audioPlayer, isPlaying, id]);
 
     return (
-        <div className="flex relative items-center my-4 ml-8">
+        <div className={cn("flex relative items-center my-4 ml-8 w-96", className)}>
             <span className="text-xs absolute -top-2 left-4 bg-background text-muted-foreground px-1.5">{label}</span>
-            <div className="flex gap-4 items-center w-fit border border-border rounded-lg px-4 py-1">
+            <div className="flex gap-4 w-full items-center border border-border rounded-lg px-4 py-1">
                 <Button
                     variant="default"
                     size="icon-sm"
@@ -156,7 +158,7 @@ export default function WaveSurferComponent({
                     {isPlaying ? <Pause /> : <Play />}
                 </Button>
 
-                <span id="wavesurfer-container" ref={waveSurferContainerElemRef}></span>
+                <span id="wavesurfer-container" className="w-full" ref={waveSurferContainerElemRef}></span>
 
                 <Button variant="secondary" size="icon-sm" onClick={() => audio && onDownload(audio)}>
                     <Download />
