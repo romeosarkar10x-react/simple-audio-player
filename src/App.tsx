@@ -1,12 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { GLOBALS } from "./globals";
-import WaveSurfer from "wavesurfer.js";
+import { useCallback, useState } from "react";
+import WaveSurfer from "./components/WaveSurfer";
 
 import "./App.css";
-import { Download, Pause, Play, Share2 } from "lucide-react";
 import { pcmFloat32ToWAV } from "./lib/utils/audio/pcmFloat32ToWAV";
-import { Button } from "./components/ui/button";
-import { audioContext } from "./lib/utils/audio/context";
 
 type PlayingType =
     | {
@@ -23,165 +19,10 @@ function formatSrc(src: string) {
     return src;
 }
 
-function Sound({
-    id,
-    onPlay,
-    onPause,
-    isPlaying,
-    src,
-}: {
-    id: number;
-    onPlay: (id: number) => void;
-    onPause: (id: number) => void;
-    isPlaying: boolean;
-    src: string;
-}) {
-    const srcURL = `${GLOBALS.BASE_URL}/sounds/${src}.mp3`;
-
-    const [audioData, setAudioData] = useState<AudioBuffer | null>(null);
-
-    const [audioPlayer, setAudioPlayer] = useState<WaveSurfer | null>(null);
-    const waveSurferContainerElemRef = useRef<HTMLSpanElement | null>(null);
-
-    /** Fetch audio data */
-    useEffect(() => {
-        (async function fetchAudioData() {
-            const response = await fetch(srcURL);
-
-            if (!response.ok) {
-                return;
-            }
-
-            const buffer = await response.arrayBuffer();
-            const data = await audioContext.decodeAudioData(buffer);
-
-            setAudioData(data);
-        })();
-    }, [srcURL]);
-
-    function handlePause() {
-        if (audioPlayer !== null) {
-            audioPlayer.pause();
-            onPause(id);
-        }
-    }
-
-    function handlePlay() {
-        if (audioPlayer !== null) {
-            audioPlayer.play();
-
-            onPlay(id);
-        }
-    }
-
-    function handleDownload() {
-        if (audioData === null) {
-            return;
-        }
-
-        console.log("Sample rate:", audioData.sampleRate);
-        console.log("Number of channels:", audioData.numberOfChannels);
-
-        const wav = pcmFloat32ToWAV(audioData);
-        const blob = new Blob([wav], { type: "audio/wav" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${src}.wav`;
-        a.click();
-    }
-
-    /** Init 'WaveSurfer' */
-    useEffect(() => {
-        console.log("waveSurferContainerElemRef:", waveSurferContainerElemRef);
-
-        if (waveSurferContainerElemRef.current !== null) {
-            if (audioPlayer !== null) {
-                console.log("Loading new audioURL (wavesurfer)...");
-
-                audioPlayer.load(srcURL);
-                return;
-            }
-
-            console.log("Creating wavesurfer instance...");
-
-            const waveSurfer = WaveSurfer.create({
-                container: waveSurferContainerElemRef.current,
-                height: 40,
-                width: 200,
-                url: srcURL,
-                barWidth: 2,
-                barGap: 1,
-                barRadius: 2,
-                cursorWidth: 0,
-                dragToSeek: true,
-                progressColor: "#10b981",
-                waveColor: "#6b7280",
-                sampleRate: 3000,
-            });
-
-            waveSurfer.on("error", (err) => {
-                console.log("Error:", err);
-            });
-
-            waveSurfer.on("pause", () => {
-                // console.log("waveSurfer event: pause");
-                setAudioPlayer((audioPlayer) => {
-                    if (audioPlayer !== null) {
-                        onPause(id);
-                    }
-
-                    return audioPlayer;
-                });
-            });
-
-            setAudioPlayer(waveSurfer);
-        }
-    }, [waveSurferContainerElemRef, srcURL, id, onPause]);
-
-    useEffect(() => {
-        if (audioPlayer === null) {
-            return;
-        }
-
-        if (audioPlayer.isPlaying() !== isPlaying) {
-            void (isPlaying ? audioPlayer.play() : audioPlayer.pause());
-        }
-    }, [audioPlayer, isPlaying]);
-
-    return (
-        <div className="flex relative items-center my-4 ml-8">
-            <span className="text-xs absolute -top-2 left-4 bg-background text-muted-foreground px-1.5">
-                {formatSrc(src)}
-            </span>
-            <div className="flex gap-4 items-center w-fit border border-border rounded-lg px-4 py-1">
-                <Button variant="default" size="icon-sm" onClick={isPlaying ? handlePause : handlePlay}>
-                    {isPlaying ? <Pause /> : <Play />}
-                </Button>
-
-                {/*<button className="p-2" onClick={}>
-                </button> */}
-                <span ref={waveSurferContainerElemRef}></span>
-                <Button variant="secondary" size="icon-sm" onClick={handleDownload}>
-                    <Download />
-                </Button>
-                {/*<button ></button> */}
-                <Button variant="secondary" size="icon-sm">
-                    <Share2 />
-                </Button>
-            </div>
-        </div>
-    );
-}
-
 function App() {
     const srcs = ["clashRoyale", "heIsAPirate", "mirageTheme", "valhallaTheme", "auroraWinterlands"];
-
     const [playing, setPlaying] = useState<PlayingType>({ status: false });
-    // console.log("Playing...", playing);
 
-    // console.log("App...");
     const handlePause = useCallback((index: number) => {
         setPlaying((playing) => {
             if (playing.status && playing.id === index) {
@@ -200,13 +41,31 @@ function App() {
     return (
         <>
             {srcs.map((src, index) => (
-                <Sound
+                <WaveSurfer
                     id={index}
                     onPlay={handlePlay}
                     onPause={handlePause}
                     isPlaying={playing.status && playing.id === index}
+                    label={formatSrc(src)}
                     key={src}
-                    {...{ src }}
+                    src={src}
+                    onDownload={(audioData) => {
+                        if (audioData === null) {
+                            return;
+                        }
+
+                        console.log("Sample rate:", audioData.audioBuffer.sampleRate);
+                        console.log("Number of channels:", audioData.audioBuffer.numberOfChannels);
+
+                        const wav = pcmFloat32ToWAV(audioData.audioBuffer);
+                        const blob = new Blob([wav], { type: "audio/wav" });
+                        const url = URL.createObjectURL(blob);
+
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${src}.wav`;
+                        a.click();
+                    }}
                 />
             ))}
         </>
